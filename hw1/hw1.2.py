@@ -183,22 +183,22 @@ plt.show()
 '''
 2.3
 '''
-WCC_Components = snap.TCnComV()
-snap.GetWccs(Emails, WCC_Components)
-
-for x in WCC_Components:
-    print x.Len()
-
-SCC_Components = snap.TCnComV()
-snap.GetSccs(Emails, SCC_Components)
-
-for x in Components:
-    print x.Len()
-
-
-EmailMxScc.GetNodes() #34203
-WCC_Components[0].Len() #224832
-SCC_Components[0].Len() #34203
+# WCC_Components = snap.TCnComV()
+# snap.GetWccs(Emails, WCC_Components)
+#
+# for x in WCC_Components:
+#     print x.Len()
+#
+# SCC_Components = snap.TCnComV()
+# snap.GetSccs(Emails, SCC_Components)
+#
+# for x in Components:
+#     print x.Len()
+#
+#
+# EmailMxScc.GetNodes() #34203
+# WCC_Components[0].Len() #224832
+# SCC_Components[0].Len() #34203
 
 def Components_compute(graph):
 
@@ -267,3 +267,63 @@ Out component contains 15453 nodes
 In component contains 24236 nodes
 Tendrills contains 3965 nodes
 '''
+
+
+'''
+2.4
+'''
+
+def IsConnected(node1,node2,graph):
+    BfsTree_Out = snap.GetBfsTree(graph, node1, True, False)
+    connected = BfsTree_Out.IsNode(node2)
+
+    print connected
+    return connected
+
+'''
+Random draw 1000 pairs from all nodes
+'''
+
+
+Epinions_size = Epinions.GetNodes()
+Emails_size = Emails.GetNodes()
+Epinions_connected = []
+Emails_connected = []
+
+for i in range(1000):
+    nodes = np.random.choice(Epinions_size,2,replace = False)
+    Epinions_connected.append(IsConnected(nodes[0],nodes[1],Epinions))
+
+    nodes = np.random.choice(Emails_size,2,replace = False)
+    Emails_connected.append(IsConnected(nodes[0],nodes[1],Emails))
+
+print 'Out of 1000 random pairs in Epinions network, %i of them are connected' % np.sum(Epinions_connected)
+# 460
+print 'Out of 1000 random pairs in Emails network, %i of them are connected' % np.sum(Emails_connected)
+# 136
+
+'''
+Random draw 1000 pairs from the largest weakly connected components nodes
+'''
+
+Epinions_WCC = snap.GetMxWcc(Epinions)
+
+
+Emails_WCC = snap.GetMxWcc(Emails)
+
+EpinionsWCC_nodesid = [x.GetId() for x in Epinions_WCC.Nodes()]
+EmailsWCC_nodesid = [x.GetId() for x in Emails_WCC.Nodes()]
+EpinionsWCC_connected = []
+EmailsWCC_connected = []
+
+for i in range(1000):
+    nodes = np.random.choice(EpinionsWCC_nodesid,2,replace = False)
+    EpinionsWCC_connected.append(IsConnected(nodes[0],nodes[1],Epinions))
+
+    nodes = np.random.choice(EmailsWCC_nodesid,2,replace = False)
+    EmailsWCC_connected.append(IsConnected(nodes[0],nodes[1],Emails))
+
+print 'Out of 1000 random pairs in Epinions WCC network, %i of them are connected' % np.sum(EpinionsWCC_connected)
+# 444
+print 'Out of 1000 random pairs in Emails WCC network, %i of them are connected' % np.sum(EmailsWCC_connected)
+# 176
