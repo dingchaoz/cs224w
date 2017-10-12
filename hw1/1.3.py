@@ -176,6 +176,8 @@ def createEdges(Graph, alpha):
 
     h_choices = [edgeProbability(alpha, n1, x) for x in node_choices]
     Z = np.sum(h_choices)
+    print 'self calculated Z is', Z
+
     prob_choices = [float(x)/Z for x in h_choices]
 
     NI = Graph.GetNI(n1)

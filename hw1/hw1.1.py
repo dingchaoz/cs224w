@@ -165,10 +165,32 @@ def getDataPointsToPlot(Graph):
     for NI in Graph.Nodes():
         odegree_list.append(NI.GetOutDeg())
 
-    hist = np.histogram(odegree_list,bins=range(len(odegree_list)))
+    # hist = np.histogram(odegree_list,bins=range(len(odegree_list)))
 
-    X = hist[1]
-    Y = hist[0]
+    from collections import Counter
+
+    cnt = Counter(odegree_list)
+
+    X_cnt = cnt.keys()
+
+    Y_cnt = cnt.values()
+
+    X =[]
+    Y = []
+
+    for i in range(len(odegree_list)):
+        X.append(i)
+        if i in X_cnt:
+            idx = X_cnt.index(i)
+            Y.append(Y_cnt[idx])
+        else:
+            Y.append(0)
+
+
+
+    # X = hist[1]
+    # Y = hist[0]
+    # Y = np.append(Y,0)
     ############################################################################
     return X, Y
 
@@ -222,6 +244,21 @@ def calcQk(Graph, maxDeg=maxdeg):
     # TODO: Your code here!
     q_k = np.zeros(maxDeg)
 
+    ks, ns = getDataPointsToPlot(Graph)
+
+    total_nodes = np.sum(ns)
+
+    ks ,ns = ks[:maxDeg], ns[:maxDeg]
+
+
+    ps = [x/float(total_nodes) for x in ns]
+
+    denom_k = np.sum([x*y for x,y in zip(ks,ps)])
+
+    numerator = [x*y for x,y in zip(ks[1:],ps[1:])] # k+1*Pk+1
+    numerator.append(0)
+
+    q_k = numerator/denom_k
     ############################################################################
     return q_k
 
@@ -236,6 +273,14 @@ def calcExpectedDegree(Graph):
     ############################################################################
     # TODO: Your code here!
     ed = 0.0
+
+    ks, ns = getDataPointsToPlot(Graph)
+
+    total_nodes = Graph.GetNodes()
+
+    ps = [x/float(total_nodes) for x in ns]
+
+    ed = np.sum([x*y for x,y in zip(ks,ps)])
 
     ############################################################################
     return ed
@@ -254,9 +299,12 @@ def calcExpectedExcessDegree(Graph, qk):
     # TODO: Your code here!
     eed = 0.0
 
+
+    eed = np.sum([x*y for x,y in zip(qk,range(len(qk)))])
+
+
     ############################################################################
     return eed
-
 
 def Q1_2_a():
     """
@@ -292,6 +340,15 @@ def Q1_2_a():
     print 'Expected Excess Degree for Small World: %f' % (eed_smallWorld)
     print 'Expected Excess Degree for Collaboration Network: %f' % (eed_collabNet)
 
+    '''
+    Expected Degree for Erdos Renyi: 5.526135
+Expected Degree for Small World: 5.526135
+Expected Degree for Collaboration Network: 5.526135
+Expected Excess Degree for Erdos Renyi: 5.563518
+Expected Excess Degree for Small World: 4.804888
+Expected Excess Degree for Collaboration Network: 15.870409
+    '''
+
 
 # Execute code for Q1.2a
 Q1_2_a()
@@ -309,6 +366,32 @@ def calcClusteringCoefficient(Graph):
     ############################################################################
     # TODO: Your code here!
     C = 0.0
+    c_arrays =[]
+
+    for NI in Graph.Nodes():
+        k = NI.GetOutDeg()
+        if k>=2:
+            print 'there are %i out degrees' %(k)
+            k_denom = k*(k-1)/2
+            neibor_nodes =[]
+            connected_neibor_edges = 0
+            for Id in NI.GetOutEdges():
+                neibor_nodes.append(Id)
+            for id_n1 in range(len(neibor_nodes)):
+                for id_n2 in range(id_n1+1,len(neibor_nodes)):
+                    n1 = neibor_nodes[id_n1]
+                    n2 = neibor_nodes[id_n2]
+                    connected = Graph.IsEdge(n1,n2)
+                    print 'Is n1 %i and n2 %i connected %s:' %(n1,n2,connected)
+                    if connected:
+                        connected_neibor_edges +=1
+
+            print 'there are %i connected neibor edges for node %i' %(connected_neibor_edges,NI.GetId())
+            c = connected_neibor_edges/float(k_denom)
+            print 'Clustering coefficient of this node is', c
+            c_arrays.append(c)
+
+    C = np.mean(c_arrays)
 
     ############################################################################
     return C
@@ -328,3 +411,8 @@ def Q1_3():
 
 # Execute code for Q1.3
 Q1_3()
+'''
+Clustering Coefficient for Erdos Renyi Network: 0.000988
+Clustering Coefficient for Small World Network: 0.285127
+Clustering Coefficient for Collaboration Network: 0.686536
+'''
