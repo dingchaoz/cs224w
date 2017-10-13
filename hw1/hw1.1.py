@@ -230,8 +230,42 @@ maxdeg = max([erdosRenyi.GetNI((snap.GetMxDegNId(erdosRenyi))).GetDeg(),
                 smallWorld.GetNI((snap.GetMxDegNId(smallWorld))).GetDeg(),
                 collabNet.GetNI((snap.GetMxDegNId(collabNet))).GetDeg()]) + 2
 
+'''
+I have implemented two ways to compute q_k
+1st method is using the definition provided from the problem set, normalizing
+the count od edges connected to node of degree k+1;
+2nd method is using node degree distribution to infer q_k.
+Both methods return same result.
+
+'''
+
+def caclQk(Graph, maxDeg=maxdeg):
+    """
+    :param Graph - snap.PUNGraph object representing an undirected graph
+    :param maxDeg - maximum degree(+1) for which q_k needs to be calculated
+
+    return type: np.array
+    return: array q_k of dimension maxDeg representing the excess degree
+        distribution
+    """
+    ############################################################################
+    q_k = np.zeros(maxDeg)
+    q_k_numerator = dict((el,0) for el in range(84))
+    q_denominator = 2* Graph.GetEdges()
+    for NI in Graph.Nodes():
+        for id in NI.GetOutEdges():
+            Id = Graph.GetNI(id)
+            k = Id.GetOutDeg() - 1
+            old_value = q_k_numerator[k]
+            q_k_numerator[k] = old_value + 1
+
+    q_k =[x/float(q_denominator) for x in  q_k_numerator.values()]
+
+    return q_k
+
+
 # Erdos Renyi
-def calcQk(Graph, maxDeg=maxdeg):
+def calcQk2(Graph, maxDeg=maxdeg):
     """
     :param Graph - snap.PUNGraph object representing an undirected graph
     :param maxDeg - maximum degree(+1) for which q_k needs to be calculated
@@ -261,6 +295,8 @@ def calcQk(Graph, maxDeg=maxdeg):
     q_k = numerator/denom_k
     ############################################################################
     return q_k
+
+
 
 
 def calcExpectedDegree(Graph):
@@ -313,6 +349,7 @@ def Q1_2_a():
     qk_erdosRenyi = calcQk(erdosRenyi, maxdeg)
     qk_smallWorld = calcQk(smallWorld, maxdeg)
     qk_collabNet = calcQk(collabNet, maxdeg)
+
 
     plt.loglog(range(maxdeg), qk_erdosRenyi, color = 'y', label = 'Erdos Renyi Network')
     plt.loglog(range(maxdeg), qk_smallWorld, linestyle = 'dashed', color = 'r', label = 'Small World Network')
@@ -390,6 +427,8 @@ def calcClusteringCoefficient(Graph):
             c = connected_neibor_edges/float(k_denom)
             print 'Clustering coefficient of this node is', c
             c_arrays.append(c)
+        else:
+            c_arrays.append(0)
 
     C = np.mean(c_arrays)
 
@@ -412,7 +451,7 @@ def Q1_3():
 # Execute code for Q1.3
 Q1_3()
 '''
-Clustering Coefficient for Erdos Renyi Network: 0.000988
-Clustering Coefficient for Small World Network: 0.285127
-Clustering Coefficient for Collaboration Network: 0.686536
+Clustering Coefficient for Erdos Renyi Network: 0.000963
+Clustering Coefficient for Small World Network: 0.284625
+Clustering Coefficient for Collaboration Network: 0.529636
 '''
