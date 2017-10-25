@@ -34,6 +34,22 @@ def loadSigns(filename):
                 signs[(node2, node1)] = sign
     return signs
 
+def getNeibNodes(G,signs,NI):
+    """
+    :param G:
+    :param signs:
+    :param NI:
+    :return: a set of neibrhood nodes
+    """
+
+    x = [list(key) for key, value in signs.iteritems() if NI in key]
+    [i.remove(NI) for i in x]
+    x = [i[0] for i in x]
+    neibor_nodes = set(x)
+
+    return neibor_nodes
+
+
 def computeTriadCounts(G, signs):
     """
     :param - G: graph
@@ -49,6 +65,69 @@ def computeTriadCounts(G, signs):
     ############################################################################
     # TODO: Your code here!
 
+    # iterate through signs, build an array of triplet storing visited triads
+    # for each edge, use snap.GetCmnNbrs(g, node1, node2), if shared neibors larger than 1, then search which nodes are
+    # using key search, then form triads, if the triad is not visited then count the type
+
+    # check if there are self edges
+
+    visited_triads = [] # storing sets of visited triads node
+
+    for key, value in signs.iteritems(): # iterate all the edges in the graph
+
+        n1, n2 = key[0],key[1] # get the two nodes of an edge
+        print 'iterating sign with node %i %i' %(n1,n2)
+
+        if n1 == n2: #skip self connected edge
+            continue
+
+        n_common_nodes = snap.GetCmnNbrs(G, n1, n2) # see how many common neigbors the two nodes share
+
+        print 'there are %i common nodes' %(n_common_nodes)
+
+        if n_common_nodes > 0: # if there is more than 1 common shared neigbor, means there is a triad
+
+            print 'finding common neigbors'
+
+            neib_n1 = getNeibNodes(G,signs,n1)
+
+            neib_n2 = getNeibNodes(G,signs,n2)
+
+            common_neib = list(neib_n1.intersection(neib_n2)) # get common shared neibor nodes
+
+            print 'the common nodes are', common_neib
+
+            assert len(common_neib) == n_common_nodes # check if own written function gets the same result as GetCmnNbrs
+
+            for node in common_neib:
+
+                if n2 == node or n1 == node: # skip self connected edge
+                    continue
+
+                triad = set((n1,n2,node)) # form triad
+
+                print 'form triad: ', triad
+
+                if triad not in visited_triads:
+
+                    print 'the formed triad not in visited triads'
+
+                    # count signs and increment type
+                    sum_signs = signs[(n1,n2)]+signs[(n2,node)]+signs[(n1,node)]
+
+                    print 'sum signs is %i' %sum_signs
+                    if sum_signs == -3:
+                        triad_count[0] += 1
+                    elif sum_signs == -1:
+                        triad_count[1] += 1
+                    elif sum_signs == 1:
+                        triad_count[2] += 1
+                    else:
+                        triad_count[3] += 1
+
+                    # append to visited triad
+                    visited_triads.append(triad)
+                    print 'append to visited triads'
     ############################################################################
 
     return triad_count
@@ -67,6 +146,18 @@ def displayStats(G, signs):
 
     ############################################################################
     # TODO: Your code here! (Note: you may not need both input parameters)
+    pos_count = [1 for key, value in signs.iteritems() if value == 1 ]
+    total_signs = len(signs)
+    pos_signs = len(pos_count)
+    fracPos = pos_signs/float(total_signs)
+    fracNeg = 1 - fracPos
+
+    type0_prob = fracNeg ** 3
+    type3_prob = fracPos ** 3
+    type1_prob = 3 * fracPos * fracNeg * fracNeg
+    type2_prob = 3 * fracNeg * fracPos * fracPos
+
+    probs = [type0_prob,type1_prob,type2_prob,type3_prob]
 
     ############################################################################
 
@@ -182,7 +273,16 @@ def main():
     print "Problem 2.1b"
     displayStats(epinionsNetwork, signs)
 
-    # Problem 2.4
+    '''
+    Fraction of Positive Edges: 0.8324
+    Fraction of Negative Edges: 0.1676
+    Probability of Triad t0: 0.0047
+    Probability of Triad t1: 0.0701
+    Probability of Triad t2: 0.3484
+    Probability of Triad t3: 0.5768
+    '''
+
+    #  Problem 2.4
     print "Problem 2.4"
     networkSize = 10
     numSimulations = 100
