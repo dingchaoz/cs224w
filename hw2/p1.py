@@ -86,18 +86,7 @@ cient of each of these samples and report the mean value across samples.
 # original cluster coefficient of powergraph is 0.08010361108159704
 print 'average cluster coefficient of 100 random networks is %f' % (np.mean([snap.GetClustCf(x, -1) for x in networks]))
 
-'''
-(b)
-Consider node i with degree ki, and node j with degree kj . Under a random match-
-ing on the half-edges, what is the probability that node i and j are connected? What does the
-result imply? For simplicity, self-loops and multi-edges are allowed during stub-matching for
-this subproblem.
 
-(c)
-
-no problem needed, math, proof
-
-'''
 
 '''
 1.2

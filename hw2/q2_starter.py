@@ -10,6 +10,7 @@
 
 import snap
 import random
+import numpy as np
 
 # Problem 2.1 Functions
 def loadSigns(filename):
@@ -178,6 +179,18 @@ def createCompleteNetwork(networkSize):
     completeNetwork = None
     ############################################################################
     # TODO: Your code here!
+    completeNetwork = snap.TUNGraph.New()
+
+    # Add nodes
+    for i in range(networkSize):
+        completeNetwork.AddNode(i)
+
+    # Add edges
+    for i in range(networkSize-1):
+        for j in range(i+1,networkSize):
+            completeNetwork.AddEdge(i,j)
+            j += 1
+        i += 1
 
     ############################################################################
     return completeNetwork
@@ -192,6 +205,11 @@ def assignRandomSigns(G):
     signs = {}
     ############################################################################
     # TODO: Your code here!
+    for EI in G.Edges():
+        print "edge (%d, %d)" % (EI.GetSrcNId(), EI.GetDstNId())
+        signs[(EI.GetSrcNId(), EI.GetDstNId())] = np.random.choice([1,-1])
+
+    assert len(signs) == G.GetEdges()
 
     ############################################################################
     return signs
@@ -207,6 +225,40 @@ def runDynamicProcess(G, signs, num_iterations):
     ############################################################################
     # TODO: Your code here!
 
+    N = G.GetNodes()
+    i = 1
+
+    while i < num_iterations:
+
+        if isBalancedNetwork(G, signs):
+            print 'already balanced, skip the remaining update'
+            break
+
+        # pick a random triad 3 nodes
+        nodes = np.random.choice(N,3,replace = False)
+        nodes.sort()
+
+        print 'selected 3 nodes are: ', nodes
+
+        # check if it is balanced
+        e1 = signs[(nodes[0],nodes[1])]
+        e2 = signs[(nodes[0],nodes[2])]
+        e3 = signs[(nodes[1],nodes[2])]
+
+        sum = np.sum([e1,e2,e3])
+
+        # if not balanced
+        if sum == 1 or sum == -3:
+            print 'not balanced'
+            # random choose 2 nodes
+            rdnodes = np.random.choice(nodes,2,replace = False)
+            rdnodes.sort()
+            print 'selected flip edge 2 nodes are: ', rdnodes
+            # flip the sign
+            signs[tuple(rdnodes)] *= -1
+
+        i += 1
+
     ############################################################################
 
 def isBalancedNetwork(G, signs):
@@ -220,6 +272,24 @@ def isBalancedNetwork(G, signs):
     isBalanced = False
     ############################################################################
     # TODO: Your code here!
+
+    N = G.GetNodes()
+
+    for i in range(N-2):
+        for j in range(i+1, N-1):
+            for k in range(j+1, N):
+                # check if it is balanced
+                e1 = signs[(i,j)]
+                e2 = signs[(i,k)]
+                e3 = signs[(j,k)]
+
+                sum = np.sum([e1,e2,e3])
+
+                # if not balanced
+                if sum == 1 or sum == -3:
+                    return isBalanced
+
+    isBalanced = True
 
     ############################################################################
     return isBalanced
@@ -288,6 +358,10 @@ def main():
     numSimulations = 100
     numBalancedNetworks = computeNumBalancedNetworks(numSimulations)
     print "Fraction of Balanced Networks: %0.4f" % (float(numBalancedNetworks)/float(numSimulations))
+
+    '''
+    Fraction of Balanced Networks: 1.0000
+    '''
 
 
 if __name__ == '__main__':
